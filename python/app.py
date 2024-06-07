@@ -15,15 +15,29 @@ def check_url(url):
         print(f"Failed to fetch URL ({response.status_code})")
         sys.exit(1)
 
-def get_elements(url, tag, pattern=None):
+def get_elements(url, tag):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
-    print(f"SOUP: {soup}")
-    if pattern:
-        elements = soup.find_all(tag, href=pattern)
-    else:
-        elements = soup.find_all(tag)
+    elements = soup.find_all(tag)
     return [element.text.strip() for element in elements]
+
+
+def get_links(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+    html = str(soup)
+    pattern = r'https://[^"]+'
+    regex = re.compile(pattern)
+    matches = re.findall(regex, html)
+    green = "\033[92m"
+    reset = "\033[0m"
+    yellow = "\033[93m"
+    blue = "\033[94m"
+    print(f"{green}\n\n[!] LINKS FOUND:\n\n{reset}")
+    for match in matches:
+        print(f"{yellow}Link found: {blue}{match}{reset}")
+
+
     
 def main():
 
@@ -36,53 +50,44 @@ def main():
     parser.add_argument('-s', '--subtitle',action='store_true', default=False, required=False, help='subtitles')
     parser.add_argument('-l', '--lists', action='store_true', required=False, help='Lists and their contents')
     parser.add_argument('-p', '--paragraphs', action='store_true', default=False, required=False, help='paragraph text')
-    parser.add_argument('-a', '--a_tags', action='store_true', default=False, required=False, help='<a> tags')
     parser.add_argument('-A', '--all', action='store_true', default=False, required=False, help='all arguments')
     parser.add_argument('-L', '--link', action='store_true', default=False, required=False, help='links')
     args = parser.parse_args()
     url = args.url
     check_url(url)
-
+    green = "\033[92m"
+    yellow = "\033[93m"
+    blue = "\033[94m"
+    reset = "\033[0m"
     if args.all:
-        args.title = args.subtitle = args.lists = args.paragraphs = args.a_tags = True
+        args.title = args.subtitle = args.lists = args.paragraphs = args.link = True
     if args.title:
         titles = get_elements(url, 'h1')
-        print(f"[!] Titles:\n")
+        print(f"{green}\n\n[!] TITLES FOUND:\n\n{reset}")
         for title in titles:
-            print(title)
+            print(f"{yellow}Title: {blue}{title}{reset}")
     if args.subtitle:
         subtitles = get_elements(url, 'h2')
-        print("[!] Subtitles:\n")
+        print(f"{green}\n\n[!] SUBTITLES FOUND:\n\n{reset}")
         for sub in subtitles:
-            print(sub)
+            print(f"{yellow}Subtitle: {blue}{sub}{reset}")
     if args.lists:
         lists = get_elements(url, 'li')
-        print(f"[!] Lists:\n")
+        print(f"{green}\n\n[!] LISTS FOUND:\n\n{reset}")
         for l in lists:
-            print(l)
+            print(f"{yellow}List: {blue}{l}{reset}")
 
     if args.paragraphs:
         paragraphs = get_elements(url, 'p')
-        print(f"[!] Paragraphs:\n")
+        print(f"{green}\n\n[!] PARAGRAPHS FOUND:\n\n{reset}")
         for par in paragraphs:
-            print(f" paragraph: {par}\n")
+            print(f"{yellow}Paragraph: {blue}{par}{reset}\n")
 
-    if args.a_tags:
-        a_tags = get_elements(url, 'a')
-        print(f"[!] <a> Tags:\n")
-        for a in a_tags:
-            print(a)
+   
 
 
     if args.link:
-        pattern = re.compile("^https://")
-        a = get_elements(url, "a", pattern)
-        img = get_elements(url, "img", pattern)
-        print("[!] All links are:")
-        for elem in a:
-            print(f"a tag link: {elem}")
-        for elem in img:
-            print(f"img link: {elem}")
+        get_links(url)
         
 
 
