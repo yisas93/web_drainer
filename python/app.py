@@ -15,11 +15,30 @@ def check_url(url):
         print(f"Failed to fetch URL ({response.status_code})")
         sys.exit(1)
 
-def get_elements(url, tag):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    elements = soup.find_all(tag)
-    return [element.text.strip() for element in elements]
+def get_elements(url, tag, proxy=False):
+    proxies = { 
+        "http":proxy,
+        "https":proxy
+    }
+    if proxy:
+        
+        try:
+            proxy_list= request.get("https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all")
+            clean_list = proxy.text.split("\n")
+            clean_list = [proxy.strip() for proxy in clean_list if proxy.strip()]
+
+            response = requests.get(url, proxies=proxies, timeout=10)
+            
+            soup = BeautifulSoup(response.text, "html.parser")
+            elements = soup.find_all(tag)
+            return [element.text.strip() for element in elements]
+        except:
+            return None
+    else:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        elements = soup.find_all(tag)
+        return [element.text.strip() for element in elements]
 
 
 def get_links(url):
@@ -52,6 +71,7 @@ def main():
     parser.add_argument('-p', '--paragraphs', action='store_true', default=False, required=False, help='paragraph text')
     parser.add_argument('-A', '--all', action='store_true', default=False, required=False, help='all arguments')
     parser.add_argument('-L', '--link', action='store_true', default=False, required=False, help='links')
+    parser.add_argument('-P', '--proxy', action='store_true', default=False, required=False, help='proxies')
     args = parser.parse_args()
     url = args.url
     check_url(url)
@@ -59,30 +79,57 @@ def main():
     yellow = "\033[93m"
     blue = "\033[94m"
     reset = "\033[0m"
-    if args.all:
-        args.title = args.subtitle = args.lists = args.paragraphs = args.link = True
-    if args.title:
-        titles = get_elements(url, 'h1')
-        print(f"{green}\n\n[!] TITLES FOUND:\n\n{reset}")
-        for title in titles:
-            print(f"{yellow}Title: {blue}{title}{reset}")
-    if args.subtitle:
-        subtitles = get_elements(url, 'h2')
-        print(f"{green}\n\n[!] SUBTITLES FOUND:\n\n{reset}")
-        for sub in subtitles:
-            print(f"{yellow}Subtitle: {blue}{sub}{reset}")
-    if args.lists:
-        lists = get_elements(url, 'li')
-        print(f"{green}\n\n[!] LISTS FOUND:\n\n{reset}")
-        for l in lists:
-            print(f"{yellow}List: {blue}{l}{reset}")
 
-    if args.paragraphs:
-        paragraphs = get_elements(url, 'p')
-        print(f"{green}\n\n[!] PARAGRAPHS FOUND:\n\n{reset}")
-        for par in paragraphs:
-            print(f"{yellow}Paragraph: {blue}{par}{reset}\n")
+    if args.proxies:
 
+        if args.all:
+            args.title = args.subtitle = args.lists = args.paragraphs = args.link = True
+        if args.title:
+            titles = get_elements(url, 'h1')
+            print(f"{green}\n\n[!] TITLES FOUND:\n\n{reset}")
+            for title in titles:
+                print(f"{yellow}Title: {blue}{title}{reset}")
+        if args.subtitle:
+            subtitles = get_elements(url, 'h2')
+            print(f"{green}\n\n[!] SUBTITLES FOUND:\n\n{reset}")
+            for sub in subtitles:
+                print(f"{yellow}Subtitle: {blue}{sub}{reset}")
+        if args.lists:
+            lists = get_elements(url, 'li')
+            print(f"{green}\n\n[!] LISTS FOUND:\n\n{reset}")
+            for l in lists:
+                print(f"{yellow}List: {blue}{l}{reset}")
+
+        if args.paragraphs:
+            paragraphs = get_elements(url, 'p')
+            print(f"{green}\n\n[!] PARAGRAPHS FOUND:\n\n{reset}")
+            for par in paragraphs:
+                print(f"{yellow}Paragraph: {blue}{par}{reset}\n")
+    
+    else:
+        if args.all:
+            args.title = args.subtitle = args.lists = args.paragraphs = args.link = True
+        if args.title:
+            titles = get_elements(url, 'h1')
+            print(f"{green}\n\n[!] TITLES FOUND:\n\n{reset}")
+            for title in titles:
+                print(f"{yellow}Title: {blue}{title}{reset}")
+        if args.subtitle:
+            subtitles = get_elements(url, 'h2')
+            print(f"{green}\n\n[!] SUBTITLES FOUND:\n\n{reset}")
+            for sub in subtitles:
+                print(f"{yellow}Subtitle: {blue}{sub}{reset}")
+        if args.lists:
+            lists = get_elements(url, 'li')
+            print(f"{green}\n\n[!] LISTS FOUND:\n\n{reset}")
+            for l in lists:
+                print(f"{yellow}List: {blue}{l}{reset}")
+
+        if args.paragraphs:
+            paragraphs = get_elements(url, 'p')
+            print(f"{green}\n\n[!] PARAGRAPHS FOUND:\n\n{reset}")
+            for par in paragraphs:
+                print(f"{yellow}Paragraph: {blue}{par}{reset}\n")
    
 
 
