@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/bin/bash
 import requests 
 from bs4 import BeautifulSoup
 import argparse
@@ -20,8 +20,6 @@ def check_url(url):
         print(f"Failed to fetch URL ({e})")
         sys.exit(1)
     
-
-
 def get_proxies():
     try:
         response = requests.get("https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all")
@@ -89,6 +87,7 @@ def get_links(url, use_proxy=False, proxy=None):
         print(f"{green}\n\n[!] LINKS FOUND:\n\n{reset}")
         for match in matches:
             print(f"{yellow}Link found: {blue}{match}{reset}")
+        return matches
     except requests.RequestException as e:
         print(f"An error occurred: {e}")
     
@@ -129,31 +128,51 @@ def main():
         
     if args.all:
         args.title = args.subtitle = args.lists = args.paragraphs = args.link = True
+    
+    output_files = {}
+    
     if args.title:
         titles = get_elements(url, 'h1', use_proxy=use_proxy, proxy=proxy)
         print(f"{green}\n\n[!] TITLES FOUND:\n\n{reset}")
+        output_files['titles.txt'] = titles
         for title in titles:
             print(f"{yellow}Title: {blue}{title}{reset}")
+
+
     if args.subtitle:
         subtitles = get_elements(url, 'h2', use_proxy=use_proxy, proxy=proxy)
         print(f"{green}\n\n[!] SUBTITLES FOUND:\n\n{reset}")
+        output_files['subtitles.txt'] = subtitles
         for sub in subtitles:
             print(f"{yellow}Subtitle: {blue}{sub}{reset}")
+
     if args.lists:
         lists = get_elements(url, 'li', use_proxy=use_proxy, proxy=proxy)
         print(f"{green}\n\n[!] LISTS FOUND:\n\n{reset}")
+        output_files['lists.txt']= lists
         for l in lists:
             print(f"{yellow}List: {blue}{l}{reset}")
 
     if args.paragraphs:
         paragraphs = get_elements(url, 'p', use_proxy=use_proxy, proxy=proxy)
         print(f"{green}\n\n[!] PARAGRAPHS FOUND:\n\n{reset}")
+        output_files['paragraphs.txt']= paragraphs
         for par in paragraphs:
             print(f"{yellow}Paragraph: {blue}{par}{reset}\n")
    
 
     if args.link:
-        get_links(url)
+        links = get_links(url)
+        output_files['links.txt']= links
+
+
+    for filename, content in output_files.items():
+        with open(filename, 'w', encoding='utf-8') as f:
+            for item in content:
+                f.write(item + '\n')
+
+
+    print(f"\n\n{green}[!] Output save to files")
         
 
 
